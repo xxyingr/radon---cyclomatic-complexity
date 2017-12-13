@@ -1,0 +1,5 @@
+coverage
+coveralls
+pytest>=2.7
+pytest-mock
+argparse
