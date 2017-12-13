@@ -21,7 +21,7 @@ class getRepository(Resource):
         args = self.reqparser.parse_args()
         if args['pullStatus'] == False:  # Repo hasn't been pulled yet
             print("GOT 1")
-            return {'repo': "https://github.com/python/bedevere"}  # 'https://github.com/fchollet/deep-learning-models'
+            return {'repo': "https://github.com/xxyingr/cloud_haskell"}  
         if args['pullStatus'] == True:  # Repo has been pulled, can now increment
             self.server.currNumWorkers += 1
             if self.server.currNumWorkers == self.server.numWorkers:
