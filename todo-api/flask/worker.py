@@ -1,13 +1,11 @@
 import json, requests, subprocess
 
-def run():
-
-    numCommitsDone = 0
+def work():
     
-    masterURL = 'http://127.0.0.1:5000/repo' 
+    masterURL = 'http://127.0.0.1:5000/' 
     r = requests.get(masterURL, json={'pullStatus': False})
-    data = json.loads(response.text)
-    repoURL = data['repo']
+    data = json.loads(r.text)
+    repoURL = data['workerData']
     bashCommand = "cd pulledRepo &" \
                   "rm -rf .git/ &" \
                   "git init &" \
@@ -22,9 +20,9 @@ def run():
     mCommits = True
     while mCommits:
         r = requests.get("http://127.0.0.1:5000/cyclomatic")
-        json_data = json.loads(r.text)
-        print(json_data)
-        hsha = json_data['sha']
+        data = json.loads(r.text)
+        print(data)
+        hsha = data['sha']
         print("Received: ", str(hsha))
         if hsha == -2:  # Polling for manager to start giving commits
            print("Waiting")
@@ -42,10 +40,9 @@ def run():
             numCommitsDone = 0
             aveCC = result.rfind('(')
             if output.find("ERROR") != -1: 
-                print("NO RELEVENT FILES")
                 r = requests.post("http://127.0.0.1:5000/cyclomatic",
                                   json={'commit': hsha, 'complexity': 0})
-            elif output[aveCC + 1:-2] == "":
+            if output[aveCC + 1:-2] == "":
                 print("NO RELEVENT FILES")
                 r = requests.post("http://127.0.0.1:5000/complexity",
                                   json={'commit': hsha, 'complexity': -1})

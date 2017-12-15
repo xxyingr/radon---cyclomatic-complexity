@@ -7,22 +7,20 @@ app = Flask(__name__)
 api = Api(app)
 
 class getRepo(Resource):
-    def __init__(self):  # Upon initialisation of the class          
-        self.manager = manager  # Init the global manager
+    def __init__(self):         
+        self.manager = manager
         self.reqparser = reqparse.RequestParser()
-
-        # For every value coming in JSON, you need an argument
-        self.reqparser.add_argument('pullStatus', type=int, location = 'json')  # Repeat for multiple variables
+        self.reqparser.add_argument('pullStatus', type=int, location = 'json') 
         self.reqparser.add_argument('complexity', type=float, location='json')
 
     def get(self):
         args = self.reqparser.parse_args()
-        if args['pullStatus'] == False:  # Repo hasn't been pulled yet
+        if args['pullStatus'] == False: 
             print("GOT 1")
             return {'repo': 'https://github.com/jrios6/Berkeley-AI-PacMan-Lab-1'}  
-        if args['pullStatus'] == True:  # Repo has been pulled, can now increment
+        if args['pullStatus'] == True: 
             self.manager.currNumWorkers += 1
-            if self.manager.currNumWorkers == self.manager.numWorkers:
+            if self.manager.currNumWorkers == self.manager.totalnumWorkers:
                 self.manager.startTime = time.time()  # Start the timer
             print("WORKER NUMBER: {}".format(self.manager.currNumWorkers))
     def post(self):
@@ -44,14 +42,14 @@ class cycComplexity(Resource):
         # self.reqparser.add_argument('version', type=int, location='json')
 
     def get(self):
-        if self.manager.currNumWorkers < self.manager.numWorkers: # still waiting on workers
+        if self.manager.currNumWorkers < self.manager.totalnumWorkers: # still waiting on workers
             time.sleep(0.1)
             return {'sha': -2}
         if len(self.manager.commitList) == 0:  # No more commits to give
             return {'sha': -1}
         commitValue = self.manager.commitList[0]  # give next commit in list
         del self.manager.commitList[0]  # Remove item from list of commits to compute
-        print(commitSha)
+        print(commitValue)
         return {'sha':commitValue}
 
 
@@ -77,7 +75,7 @@ api.add_resource(cycComplexity, "/cyclomatic", endpoint="cyclomatic")
 
 class managerServer():
     def __init__(self):
-        self.numWorkers = int(input("Enter number of worker nodes: "))
+        self.totalnumWorkers = int(input("Enter number of worker nodes: "))
         
         self.currNumWorkers = 0  # Number of workers who have connected to the manager
         self.startTime = 0.0  # Start time for the timer
@@ -87,8 +85,8 @@ class managerServer():
         morePage = True
         while morePage:
             commitURL = 'https://api.github.com/repos/jrios6/Berkeley-AI-PacMan-Lab-1/commits?page=' + str(currentpage) + '&per_page=100'
-            response = requests.get(commitURL)
-            data = json.loads(response.text)
+            r = requests.get(commitURL)
+            data = json.loads(r.text)
             if len(data) < 2:
                 morePage = False
                 print('No more pages.')
@@ -99,7 +97,7 @@ class managerServer():
                 currentpage += 1
 
         self.commitNum = len(self.commitList)
-        self.complexityList = []
+        self.listOfCCs = []
         print('Total number of commits is: ', str(self.commitNum))
 
 
